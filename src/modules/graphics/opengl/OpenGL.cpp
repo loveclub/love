@@ -503,7 +503,7 @@ void OpenGL::initMaxValues()
 		maxShaderStorageBufferBindings = 0;
 	}
 
-	if (GLAD_ES_VERSION_3_1 || GLAD_VERSION_4_3 || GLAD_ARB_compute_shader)
+	if (GLAD_VERSION_4_3 || GLAD_ES_VERSION_3_1 || GLAD_ARB_compute_shader)
 	{
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &maxComputeWorkGroupsX);
 		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &maxComputeWorkGroupsY);
