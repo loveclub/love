@@ -1066,6 +1066,25 @@ void Graphics::copyBuffer(Buffer *source, Buffer *dest, size_t sourceoffset, siz
 	source->copyTo(dest, sourceoffset, destoffset, size);
 }
 
+void Graphics::dispatchThreadgroups(Shader* shader, int x, int y, int z)
+{
+	if (!capabilities.features[FEATURE_COMPUTE])
+		throw love::Exception("Compute shaders are not supported on this system.");
+
+	if (!shader->hasStage(SHADERSTAGE_COMPUTE))
+		throw love::Exception("Only compute shaders can have threads dispatched.");
+
+	if (x > capabilities.limits[LIMIT_THREADGROUPS_X]
+		|| y > capabilities.limits[LIMIT_THREADGROUPS_Y]
+		|| z > capabilities.limits[LIMIT_THREADGROUPS_Z])
+	{
+		throw love::Exception("Too many threadgroups dispatched");
+	}
+
+	shader->attach();
+	dispatch(x, y, z);
+}
+
 Graphics::BatchedVertexData Graphics::requestBatchedDraw(const BatchedDrawCommand &cmd)
 {
 	BatchedDrawState &state = batchedDrawState;
