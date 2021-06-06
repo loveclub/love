@@ -675,6 +675,13 @@ void Shader::validateDrawState(PrimitiveType primtype, Texture *maintex) const
 	}
 }
 
+void Shader::getLocalThreadgroupSize(int *x, int *y, int *z)
+{
+	*x = validationReflection.localThreadgroupSize[0];
+	*y = validationReflection.localThreadgroupSize[1];
+	*z = validationReflection.localThreadgroupSize[2];
+}
+
 bool Shader::validate(StrongRef<ShaderStage> stages[], std::string& err)
 {
 	ValidationReflection reflection;
@@ -707,6 +714,10 @@ bool Shader::validateInternal(StrongRef<ShaderStage> stages[], std::string &err,
 		// NOTE: this doesn't check whether the use affects final output...
 		reflection.usesPointSize = vertintermediate->inIoAccessed("gl_PointSize");
 	}
+
+	if (stages[SHADERSTAGE_COMPUTE] != nullptr)
+		for (int i = 0; i < 3; i++)
+			reflection.localThreadgroupSize[i] = program.getLocalSize(i);
 
 	for (int i = 0; i < program.getNumBufferBlocks(); i++)
 	{
