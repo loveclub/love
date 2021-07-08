@@ -472,6 +472,7 @@ void Graphics::setActive(bool enable)
 void Graphics::dispatch(int x, int y, int z)
 {
 	glDispatchCompute(x, y, z);
+	glMemoryBarrier(GL_ALL_BARRIER_BITS); // Strawman
 }
 
 void Graphics::draw(const DrawCommand &cmd)
