@@ -155,9 +155,9 @@ love::graphics::ShaderStage *Graphics::newShaderStageInternal(ShaderStageType st
 	return new ShaderStage(this, stage, source, gles, cachekey);
 }
 
-love::graphics::Shader *Graphics::newShaderInternal(love::graphics::ShaderStage *vertex, love::graphics::ShaderStage *pixel)
+love::graphics::Shader *Graphics::newShaderInternal(StrongRef<love::graphics::ShaderStage> stages[SHADERSTAGE_MAX_ENUM])
 {
-	return new Shader(vertex, pixel);
+	return new Shader(stages);
 }
 
 love::graphics::Buffer *Graphics::newBuffer(const Buffer::Settings &settings, const std::vector<Buffer::DataDeclaration> &format, const void *data, size_t size, size_t arraylength)
@@ -467,6 +467,12 @@ void Graphics::setActive(bool enable)
 		glFinish();
 
 	active = enable;
+}
+
+void Graphics::dispatch(int x, int y, int z)
+{
+	glDispatchCompute(x, y, z);
+	glMemoryBarrier(GL_ALL_BARRIER_BITS); // Strawman
 }
 
 void Graphics::draw(const DrawCommand &cmd)
@@ -1534,7 +1540,8 @@ void Graphics::initCapabilities()
 	capabilities.features[FEATURE_INSTANCING] = gl.isInstancingSupported();
 	capabilities.features[FEATURE_TEXEL_BUFFER] = gl.isBufferUsageSupported(BUFFERUSAGE_TEXEL);
 	capabilities.features[FEATURE_COPY_BUFFER] = gl.isBufferUsageSupported(BUFFERUSAGE_COPY_SOURCE);
-	static_assert(FEATURE_MAX_ENUM == 12, "Graphics::initCapabilities must be updated when adding a new graphics feature!");
+	capabilities.features[FEATURE_COMPUTE] = GLAD_VERSION_4_3 || GLAD_ES_VERSION_3_1 || GLAD_ARB_compute_shader;
+	static_assert(FEATURE_MAX_ENUM == 13, "Graphics::initCapabilities must be updated when adding a new graphics feature!");
 
 	capabilities.limits[LIMIT_POINT_SIZE] = gl.getMaxPointSize();
 	capabilities.limits[LIMIT_TEXTURE_SIZE] = gl.getMax2DTextureSize();
@@ -1543,10 +1550,13 @@ void Graphics::initCapabilities()
 	capabilities.limits[LIMIT_CUBE_TEXTURE_SIZE] = gl.getMaxCubeTextureSize();
 	capabilities.limits[LIMIT_TEXEL_BUFFER_SIZE] = gl.getMaxTexelBufferSize();
 	capabilities.limits[LIMIT_SHADER_STORAGE_BUFFER_SIZE] = gl.getMaxShaderStorageBufferSize();
+	capabilities.limits[LIMIT_THREADGROUPS_X] = gl.getMaxComputeWorkGroupsX();
+	capabilities.limits[LIMIT_THREADGROUPS_Y] = gl.getMaxComputeWorkGroupsY();
+	capabilities.limits[LIMIT_THREADGROUPS_Z] = gl.getMaxComputeWorkGroupsZ();
 	capabilities.limits[LIMIT_RENDER_TARGETS] = gl.getMaxRenderTargets();
 	capabilities.limits[LIMIT_TEXTURE_MSAA] = gl.getMaxSamples();
 	capabilities.limits[LIMIT_ANISOTROPY] = gl.getMaxAnisotropy();
-	static_assert(LIMIT_MAX_ENUM == 10, "Graphics::initCapabilities must be updated when adding a new system limit!");
+	static_assert(LIMIT_MAX_ENUM == 13, "Graphics::initCapabilities must be updated when adding a new system limit!");
 
 	for (int i = 0; i < TEXTURE_MAX_ENUM; i++)
 		capabilities.textureTypes[i] = gl.isTextureTypeSupported((TextureType) i);
